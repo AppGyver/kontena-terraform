@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+source bin/common.sh
+
+$1/bin/setup

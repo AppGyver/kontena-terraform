@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -e
+
+bin/get blueprints/aws/single
+bin/destroy blueprints/aws/single
+
+bin/apply blueprints/aws/single
+
+# TODO: security group not set if doing like this:
+# bin/apply blueprints/aws/single module.mongo
+# bin/apply blueprints/aws/single module.master
+
+MASTER_HOSTNAME=$(bin/output blueprints/aws/single master_public_dns)
+MASTER_URL="http://$MASTER_HOSTNAME"
+
+echo "Waiting until master is reachable at $MASTER_URL "
+while true; do
+  set +e
+  curl --connect-timeout 2 $MASTER_URL
+  [ "$?" == 0 ] && break
+  set -e
+
+  printf "."
+  sleep 1
+done
+
+echo "\n\nMaster is available!\n\n"
+
+kontena login --name wat $MASTER_URL
+kontena grid create --initial-size=3 wat
+
+echo $(kontena grid show wat | grep token: | sed -e 's/  token: /kontena_grid_token = "/')\" >> terraform.tfvars
+
+bin/apply blueprints/aws/single
+
+while true; do
+  kontena grid show wat
+  kontena node ls
+  sleep 1
+done

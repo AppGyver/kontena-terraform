@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+source bin/common.sh
+
+terraform plan -state=terraform.tfstate -var-file=terraform.tfvars $TARGET_SPECIFIER $1

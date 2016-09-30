@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+source bin/common.sh
+
+terraform output -state=terraform.tfstate $2
